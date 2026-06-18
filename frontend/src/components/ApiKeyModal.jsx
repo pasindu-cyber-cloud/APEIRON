@@ -14,8 +14,8 @@ export default function ApiKeyModal({ opened, onClose }) {
     <Modal opened={opened} onClose={onClose} title="API key" centered>
       <Stack>
         <Text size="sm" c="dimmed">
-          If the backend has <b>APEIRON_API_KEY</b> set, enter it here. It is stored
-          locally in your browser and sent as the <b>X-API-Key</b> header.
+          If the backend has <b>APEIRON_API_KEY</b> set, enter it here. It is stored locally in your
+          browser and sent as the <b>X-API-Key</b> header.
         </Text>
         <PasswordInput
           label="X-API-Key"
@@ -24,7 +24,9 @@ export default function ApiKeyModal({ opened, onClose }) {
           onChange={(e) => setValue(e.currentTarget.value)}
         />
         <Group justify="flex-end">
-          <Button variant="default" onClick={onClose}>Cancel</Button>
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={save}>Save</Button>
         </Group>
       </Stack>

@@ -1,4 +1,5 @@
 """SQLAlchemy ORM models for APEIRON."""
+
 from __future__ import annotations
 
 import uuid
@@ -65,9 +66,7 @@ class Sample(Base):
     trace_events: Mapped[list[TraceEvent]] = relationship(
         back_populates="sample", cascade="all, delete-orphan"
     )
-    iocs: Mapped[list[IOC]] = relationship(
-        back_populates="sample", cascade="all, delete-orphan"
-    )
+    iocs: Mapped[list[IOC]] = relationship(back_populates="sample", cascade="all, delete-orphan")
     rules: Mapped[list[GeneratedRule]] = relationship(
         back_populates="sample", cascade="all, delete-orphan"
     )

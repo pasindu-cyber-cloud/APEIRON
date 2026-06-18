@@ -8,6 +8,7 @@ timing so the environment looks like an ordinary workstation.
 These functions are best-effort and degrade gracefully when Qiling is not
 available (e.g. static-only mode).
 """
+
 from __future__ import annotations
 
 import random
@@ -61,16 +62,20 @@ def apply_qiling_hooks(ql, recorder: Recorder) -> None:  # noqa: ANN001 - ql is 
 
         def _hook_isdebuggerpresent(ql_):  # pragma: no cover - requires qiling
             recorder.record(
-                "api", "IsDebuggerPresent", ret="0",
-                detail="anti-evasion: forced not-debugged", severity="low",
+                "api",
+                "IsDebuggerPresent",
+                ret="0",
+                detail="anti-evasion: forced not-debugged",
+                severity="low",
             )
             ql_.os.set_function_result(0) if hasattr(ql_.os, "set_function_result") else None
             return 0
 
         def _hook_gettickcount(ql_):  # pragma: no cover
             value = humanized_tick(tick_state)
-            recorder.record("api", "GetTickCount", ret=str(value),
-                            detail="anti-evasion: humanized tick")
+            recorder.record(
+                "api", "GetTickCount", ret=str(value), detail="anti-evasion: humanized tick"
+            )
             return value
 
         # Qiling exposes set_api to override Windows API behavior.

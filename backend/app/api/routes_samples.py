@@ -1,4 +1,5 @@
 """Sample submission, listing, detail, traces, dumps and reports."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -180,9 +181,7 @@ def get_traces(
     all_rows = db.scalars(stmt.order_by(TraceEvent.seq.asc())).all()
     total = len(all_rows)
     page = all_rows[offset : offset + limit]
-    return TraceListResponse(
-        total=total, items=[TraceEventOut.model_validate(r) for r in page]
-    )
+    return TraceListResponse(total=total, items=[TraceEventOut.model_validate(r) for r in page])
 
 
 @router.get("/{sample_id}/report.json", dependencies=[Depends(require_api_key)])
@@ -215,6 +214,4 @@ def download_dump(sample_id: str, dump_id: int, db: Session = Depends(get_db)) -
     path = Path(dump.path)
     if not path.exists():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Dump file missing.")
-    return FileResponse(
-        path, media_type="application/octet-stream", filename=path.name
-    )
+    return FileResponse(path, media_type="application/octet-stream", filename=path.name)

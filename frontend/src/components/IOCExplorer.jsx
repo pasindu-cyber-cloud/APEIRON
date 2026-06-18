@@ -1,16 +1,31 @@
 import { useMemo, useState } from 'react';
 import {
-  ActionIcon, Badge, Group, Paper, ScrollArea, SegmentedControl, Stack, Table, Text,
-  TextInput, Tooltip,
+  ActionIcon,
+  Badge,
+  Group,
+  Paper,
+  ScrollArea,
+  SegmentedControl,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { IconCopy, IconSearch } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { copyText } from '../utils';
 
 const TYPE_COLORS = {
-  ip: 'pink', domain: 'grape', url: 'violet', mutex: 'orange',
-  registry_key: 'indigo', filepath: 'cyan', email: 'teal',
-  hash: 'gray', bitcoin: 'yellow',
+  ip: 'pink',
+  domain: 'grape',
+  url: 'violet',
+  mutex: 'orange',
+  registry_key: 'indigo',
+  filepath: 'cyan',
+  email: 'teal',
+  hash: 'gray',
+  bitcoin: 'yellow',
 };
 
 export default function IOCExplorer({ iocs }) {
@@ -19,7 +34,9 @@ export default function IOCExplorer({ iocs }) {
 
   const types = useMemo(() => {
     const counts = {};
-    iocs.forEach((i) => { counts[i.ioc_type] = (counts[i.ioc_type] || 0) + 1; });
+    iocs.forEach((i) => {
+      counts[i.ioc_type] = (counts[i.ioc_type] || 0) + 1;
+    });
     return ['all', ...Object.keys(counts).sort()];
   }, [iocs]);
 
@@ -36,19 +53,28 @@ export default function IOCExplorer({ iocs }) {
   };
 
   if (iocs.length === 0) {
-    return <Text c="dimmed" ta="center" py="xl">No IOCs were extracted from this sample.</Text>;
+    return (
+      <Text c="dimmed" ta="center" py="xl">
+        No IOCs were extracted from this sample.
+      </Text>
+    );
   }
 
   return (
     <Stack gap="sm">
       <Group justify="space-between">
         <SegmentedControl
-          size="xs" value={type} onChange={setType}
+          size="xs"
+          value={type}
+          onChange={setType}
           data={types.map((t) => ({ value: t, label: t }))}
         />
         <TextInput
-          size="xs" placeholder="Search value…" leftSection={<IconSearch size={14} />}
-          value={search} onChange={(e) => setSearch(e.currentTarget.value)}
+          size="xs"
+          placeholder="Search value…"
+          leftSection={<IconSearch size={14} />}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
         />
       </Group>
       <Paper withBorder radius="md">
@@ -67,9 +93,13 @@ export default function IOCExplorer({ iocs }) {
               {filtered.map((i) => (
                 <Table.Tr key={i.id}>
                   <Table.Td>
-                    <Badge size="xs" color={TYPE_COLORS[i.ioc_type] || 'gray'}>{i.ioc_type}</Badge>
+                    <Badge size="xs" color={TYPE_COLORS[i.ioc_type] || 'gray'}>
+                      {i.ioc_type}
+                    </Badge>
                   </Table.Td>
-                  <Table.Td className="mono" style={{ wordBreak: 'break-all' }}>{i.value}</Table.Td>
+                  <Table.Td className="mono" style={{ wordBreak: 'break-all' }}>
+                    {i.value}
+                  </Table.Td>
                   <Table.Td>{i.count}</Table.Td>
                   <Table.Td c="dimmed">{i.context}</Table.Td>
                   <Table.Td>

@@ -1,4 +1,5 @@
 """Health and dashboard statistics."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends

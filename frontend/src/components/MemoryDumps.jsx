@@ -7,8 +7,8 @@ export default function MemoryDumps({ sampleId, dumps }) {
   if (dumps.length === 0) {
     return (
       <Text c="dimmed" ta="center" py="xl">
-        No memory dumps were triggered. Dumps are captured automatically on suspicious
-        events such as process injection or privilege escalation.
+        No memory dumps were triggered. Dumps are captured automatically on suspicious events such
+        as process injection or privilege escalation.
       </Text>
     );
   }
@@ -28,17 +28,29 @@ export default function MemoryDumps({ sampleId, dumps }) {
         <Table.Tbody>
           {dumps.map((d) => (
             <Table.Tr key={d.id}>
-              <Table.Td><Badge color="red" variant="light">{d.reason}</Badge></Table.Td>
+              <Table.Td>
+                <Badge color="red" variant="light">
+                  {d.reason}
+                </Badge>
+              </Table.Td>
               <Table.Td className="mono">{d.address}</Table.Td>
               <Table.Td>{fmtBytes(d.size)}</Table.Td>
-              <Table.Td className="mono" style={{ wordBreak: 'break-all' }}>{d.sha256}</Table.Td>
+              <Table.Td className="mono" style={{ wordBreak: 'break-all' }}>
+                {d.sha256}
+              </Table.Td>
               <Table.Td>{fmtTime(d.created_at)}</Table.Td>
               <Table.Td>
                 <Button
-                  size="xs" variant="light" leftSection={<IconDownload size={14} />}
-                  component="a" target="_blank"
+                  size="xs"
+                  variant="light"
+                  leftSection={<IconDownload size={14} />}
+                  component="a"
+                  target="_blank"
+                  rel="noreferrer"
                   href={api.dumpDownloadUrl(sampleId, d.id)}
-                >Download</Button>
+                >
+                  Download
+                </Button>
               </Table.Td>
             </Table.Tr>
           ))}

@@ -1,4 +1,5 @@
 """WebSocket endpoints streaming live trace/analysis events from Redis pub/sub."""
+
 from __future__ import annotations
 
 import asyncio
@@ -21,9 +22,7 @@ async def _relay(websocket: WebSocket, channel: str) -> None:
     try:
         await websocket.send_json({"type": "connected", "channel": channel})
         while True:
-            message = await pubsub.get_message(
-                ignore_subscribe_messages=True, timeout=1.0
-            )
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             if message is not None and message.get("type") == "message":
                 await websocket.send_text(message["data"])
             else:

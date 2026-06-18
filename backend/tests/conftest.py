@@ -1,6 +1,7 @@
 """Pytest fixtures. Environment is configured *before* importing the app so
 settings resolve to an isolated temp database and data directory.
 """
+
 from __future__ import annotations
 
 import os
@@ -14,7 +15,7 @@ _TMP = Path(tempfile.mkdtemp(prefix="apeiron-test-"))
 os.environ.update(
     {
         "APEIRON_ENV": "test",
-        "DATABASE_URL": f"sqlite:///{_TMP/'test.sqlite3'}",
+        "DATABASE_URL": f"sqlite:///{_TMP / 'test.sqlite3'}",
         "APEIRON_DATA_DIR": str(_TMP),
         "APEIRON_UPLOAD_DIR": str(_TMP / "uploads"),
         "APEIRON_DUMP_DIR": str(_TMP / "dumps"),
@@ -37,9 +38,10 @@ def app_client():
 
     # Avoid hitting a real broker: record enqueued sample ids instead.
     enqueued: list[str] = []
-    queue_mod.enqueue_analysis = lambda sample_id: (enqueued.append(sample_id) or "task-test")
+    queue_mod.enqueue_analysis = lambda sample_id: enqueued.append(sample_id) or "task-test"
     # The samples route imported the symbol directly; patch there too.
     import app.api.routes_samples as routes_samples
+
     routes_samples.enqueue_analysis = queue_mod.enqueue_analysis
 
     init_db()

@@ -1,4 +1,5 @@
 """Generate YARA and Sigma detection rules from observed static + dynamic behavior."""
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -8,9 +9,27 @@ from collections.abc import Iterable
 from .types import Detection, IOCRecord
 
 _INTERESTING_KEYWORDS = (
-    "http", "cmd", "powershell", "reg", "schtasks", "vssadmin", "mutex",
-    "inject", "debug", "vmware", "vbox", "encrypt", "ransom", "bitcoin",
-    ".dll", ".exe", "\\run", "/bin/", "wget", "curl", "socket",
+    "http",
+    "cmd",
+    "powershell",
+    "reg",
+    "schtasks",
+    "vssadmin",
+    "mutex",
+    "inject",
+    "debug",
+    "vmware",
+    "vbox",
+    "encrypt",
+    "ransom",
+    "bitcoin",
+    ".dll",
+    ".exe",
+    "\\run",
+    "/bin/",
+    "wget",
+    "curl",
+    "socket",
 )
 _STR_ESCAPE = re.compile(r'([\\"])')
 
@@ -95,7 +114,7 @@ rule {rule_name}
         verdict = "{sample.verdict}"
         threat_score = "{sample.threat_score}"
         tags = "{tags}"
-        mitre_attack = "{', '.join(techniques)}"
+        mitre_attack = "{", ".join(techniques)}"
     strings:
 {strings_block}
     condition:
@@ -105,9 +124,7 @@ rule {rule_name}
     return rule_name, content
 
 
-def generate_sigma(
-    sample, iocs: list[IOCRecord], detections: list[Detection]
-) -> tuple[str, str]:
+def generate_sigma(sample, iocs: list[IOCRecord], detections: list[Detection]) -> tuple[str, str]:
     rule_id = sample.id[:8]
     domains = [i.value for i in iocs if i.ioc_type == "domain"][:25]
     ips = [i.value for i in iocs if i.ioc_type == "ip"][:25]
@@ -117,8 +134,10 @@ def generate_sigma(
     det_names = ", ".join(d.name for d in detections) or "static indicators"
     ts = _dt.datetime.utcnow().strftime("%Y/%m/%d")
     level = (
-        "critical" if sample.threat_score >= 70
-        else "high" if sample.threat_score >= 35
+        "critical"
+        if sample.threat_score >= 70
+        else "high"
+        if sample.threat_score >= 35
         else "medium"
     )
 
@@ -138,24 +157,18 @@ def generate_sigma(
         selection_refs.append("selection_network")
     if regs:
         detection_sections.append(
-            "    selection_registry:\n"
-            "        TargetObject|contains:\n"
-            f"{_yaml_list(regs)}"
+            f"    selection_registry:\n        TargetObject|contains:\n{_yaml_list(regs)}"
         )
         selection_refs.append("selection_registry")
     if mutexes:
         detection_sections.append(
-            "    selection_mutex:\n"
-            "        Mutex|contains:\n"
-            f"{_yaml_list(mutexes)}"
+            f"    selection_mutex:\n        Mutex|contains:\n{_yaml_list(mutexes)}"
         )
         selection_refs.append("selection_mutex")
 
     if not detection_sections:
         detection_sections.append(
-            "    selection_hash:\n"
-            "        Hashes|contains:\n"
-            f"            - 'SHA256={sample.sha256}'"
+            f"    selection_hash:\n        Hashes|contains:\n            - 'SHA256={sample.sha256}'"
         )
         selection_refs.append("selection_hash")
 

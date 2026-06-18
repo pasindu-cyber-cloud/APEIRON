@@ -25,7 +25,9 @@ async function handle(res) {
     try {
       const body = await res.json();
       detail = body.detail || detail;
-    } catch (_e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
     throw new Error(`${res.status}: ${detail}`);
   }
   const ct = res.headers.get('content-type') || '';
@@ -60,8 +62,7 @@ export const api = {
   listSamples: (params) =>
     fetch(`${API_BASE}/samples${qs(params)}`, { headers: headers() }).then(handle),
 
-  getSample: (id) =>
-    fetch(`${API_BASE}/samples/${id}`, { headers: headers() }).then(handle),
+  getSample: (id) => fetch(`${API_BASE}/samples/${id}`, { headers: headers() }).then(handle),
 
   deleteSample: (id) =>
     fetch(`${API_BASE}/samples/${id}`, { method: 'DELETE', headers: headers() }).then(handle),

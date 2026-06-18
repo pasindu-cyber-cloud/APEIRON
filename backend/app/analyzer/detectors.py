@@ -4,6 +4,7 @@ Combines statically-imported APIs with dynamically observed API/syscall trace
 events to flag suspicious techniques, assign a threat score, and tag samples.
 Findings are mapped to MITRE ATT&CK technique IDs where applicable.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable

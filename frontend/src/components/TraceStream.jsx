@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Badge, Group, Paper, ScrollArea, Select, Stack, Switch, Table, Text, TextInput, Tooltip,
+  Badge,
+  Group,
+  Paper,
+  ScrollArea,
+  Select,
+  Stack,
+  Switch,
+  Table,
+  Text,
+  TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { api, traceSocketUrl } from '../api/client';
@@ -24,12 +34,18 @@ export default function TraceStream({ sampleId, live }) {
     try {
       const data = await api.getTrace(sampleId, { limit: MAX_ROWS });
       setEvents(data.items);
-    } catch (_e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
   }, [sampleId]);
 
-  useEffect(() => { loadHistory(); }, [loadHistory]);
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
   // When live ends, refresh once to pick up persisted ordering.
-  useEffect(() => { if (!live) loadHistory(); }, [live, loadHistory]);
+  useEffect(() => {
+    if (!live) loadHistory();
+  }, [live, loadHistory]);
 
   const onWsMessage = useCallback((msg) => {
     if (msg.type !== 'trace') return;
@@ -61,27 +77,43 @@ export default function TraceStream({ sampleId, live }) {
       <Group justify="space-between">
         <Group gap="sm">
           <Select
-            size="xs" placeholder="All categories" clearable w={150}
-            data={CATEGORIES} value={category} onChange={setCategory}
+            size="xs"
+            placeholder="All categories"
+            clearable
+            w={150}
+            data={CATEGORIES}
+            value={category}
+            onChange={setCategory}
           />
           <TextInput
-            size="xs" placeholder="Filter…" leftSection={<IconSearch size={14} />}
-            value={search} onChange={(e) => setSearch(e.currentTarget.value)}
+            size="xs"
+            placeholder="Filter…"
+            leftSection={<IconSearch size={14} />}
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
           />
           <Switch
-            size="xs" label="Suspicious only"
-            checked={onlySuspicious} onChange={(e) => setOnlySuspicious(e.currentTarget.checked)}
+            size="xs"
+            label="Suspicious only"
+            checked={onlySuspicious}
+            onChange={(e) => setOnlySuspicious(e.currentTarget.checked)}
           />
         </Group>
         <Group gap="sm">
-          <Switch size="xs" label="Auto-scroll" checked={autoscroll}
-            onChange={(e) => setAutoscroll(e.currentTarget.checked)} />
+          <Switch
+            size="xs"
+            label="Auto-scroll"
+            checked={autoscroll}
+            onChange={(e) => setAutoscroll(e.currentTarget.checked)}
+          />
           {live && (
             <Badge color={connected ? 'teal' : 'gray'} variant={connected ? 'filled' : 'light'}>
               {connected ? 'streaming' : 'connecting…'}
             </Badge>
           )}
-          <Text size="xs" c="dimmed">{filtered.length} events</Text>
+          <Text size="xs" c="dimmed">
+            {filtered.length} events
+          </Text>
         </Group>
       </Group>
 
@@ -99,8 +131,10 @@ export default function TraceStream({ sampleId, live }) {
             </Table.Thead>
             <Table.Tbody>
               {filtered.map((e, i) => (
-                <Table.Tr key={`${e.seq}-${i}`}
-                  className={e.suspicious ? 'trace-row-suspicious' : undefined}>
+                <Table.Tr
+                  key={`${e.seq}-${i}`}
+                  className={e.suspicious ? 'trace-row-suspicious' : undefined}
+                >
                   <Table.Td c="dimmed">{fmtRel(e.rel_ts)}</Table.Td>
                   <Table.Td>
                     <Badge size="xs" color={CATEGORY_COLORS[e.category] || 'gray'} variant="light">
@@ -109,22 +143,33 @@ export default function TraceStream({ sampleId, live }) {
                   </Table.Td>
                   <Table.Td>
                     <Group gap={6} wrap="nowrap">
-                      <Text className="mono" fw={e.suspicious ? 700 : 400}>{e.name}</Text>
+                      <Text className="mono" fw={e.suspicious ? 700 : 400}>
+                        {e.name}
+                      </Text>
                       {e.severity && e.severity !== 'info' && (
-                        <Badge size="xs" color={SEVERITY_COLORS[e.severity]}>{e.severity}</Badge>
+                        <Badge size="xs" color={SEVERITY_COLORS[e.severity]}>
+                          {e.severity}
+                        </Badge>
                       )}
                     </Group>
-                    {e.detail && <Text size="xs" c="dimmed">{e.detail}</Text>}
+                    {e.detail && (
+                      <Text size="xs" c="dimmed">
+                        {e.detail}
+                      </Text>
+                    )}
                   </Table.Td>
                   <Table.Td>
                     <Text className="mono" c="dimmed" lineClamp={2}>
                       {Object.entries(e.args || {})
-                        .map(([k, v]) => `${k}=${v}`).join(', ')}
+                        .map(([k, v]) => `${k}=${v}`)
+                        .join(', ')}
                     </Text>
                   </Table.Td>
                   <Table.Td>
                     <Tooltip label={e.ret || ''} disabled={!e.ret}>
-                      <Text className="mono" lineClamp={1}>{e.ret}</Text>
+                      <Text className="mono" lineClamp={1}>
+                        {e.ret}
+                      </Text>
                     </Tooltip>
                   </Table.Td>
                 </Table.Tr>

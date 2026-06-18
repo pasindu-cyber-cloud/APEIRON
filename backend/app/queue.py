@@ -3,6 +3,7 @@
 Kept separate from ``app.worker`` so the API process does not import the heavy
 analysis stack (Qiling/Unicorn). Tasks are dispatched by name.
 """
+
 from __future__ import annotations
 
 from celery import Celery

@@ -4,6 +4,7 @@ Runs the full pipeline for a single sample and persists every artifact
 (trace events, IOCs, rules, dumps, report) to the database while streaming
 live trace events to the websocket bus.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -50,24 +51,21 @@ def run_analysis(sample_id: str) -> dict:
         db.flush()
     _publish(sample_id, "status", {"status": SampleStatus.RUNNING})
 
-    recorder = Recorder(
-        on_event=lambda evt: _publish(sample_id, "trace", evt.as_dict())
-    )
+    recorder = Recorder(on_event=lambda evt: _publish(sample_id, "trace", evt.as_dict()))
 
     try:
         # 1) Static analysis -------------------------------------------------
         static_info = static_analysis.analyze_static(stored_path)
         recorder.record(
-            "api", "static.analysis",
+            "api",
+            "static.analysis",
             args={"format": static_info["file_format"], "arch": static_info["arch"]},
             detail=f"entropy={static_info['overall_entropy']} "
-                   f"packed={static_info['likely_packed']}",
+            f"packed={static_info['likely_packed']}",
         )
 
         # 2) Dynamic emulation + API tracing --------------------------------
-        emulated, dumps = emulator.run_emulation(
-            stored_path, static_info, recorder, sample_id
-        )
+        emulated, dumps = emulator.run_emulation(stored_path, static_info, recorder, sample_id)
 
         # 3) IOC extraction --------------------------------------------------
         static_iocs = ioc_extractor.extract_from_strings(static_info.get("strings", []))
@@ -81,8 +79,11 @@ def run_analysis(sample_id: str) -> dict:
 
         for det in detections:
             recorder.record(
-                "api", f"detection:{det.name}",
-                detail=det.description, severity=det.severity, suspicious=True,
+                "api",
+                f"detection:{det.name}",
+                detail=det.description,
+                severity=det.severity,
+                suspicious=True,
                 args={"mitre": det.mitre, "evidence": det.evidence[:6]},
             )
 
@@ -100,41 +101,66 @@ def run_analysis(sample_id: str) -> dict:
             for evt in recorder.events:
                 db.add(TraceEvent(sample_id=sample_id, **evt.as_dict()))
             for ioc in iocs:
-                db.add(IOC(
-                    sample_id=sample_id, ioc_type=ioc.ioc_type,
-                    value=ioc.value[:2048], context=ioc.context, count=ioc.count,
-                ))
+                db.add(
+                    IOC(
+                        sample_id=sample_id,
+                        ioc_type=ioc.ioc_type,
+                        value=ioc.value[:2048],
+                        context=ioc.context,
+                        count=ioc.count,
+                    )
+                )
             for dump in dumps:
-                db.add(MemoryDump(
-                    sample_id=sample_id, reason=dump.reason, address=dump.address,
-                    size=dump.size, path=dump.path, sha256=dump.sha256,
-                ))
+                db.add(
+                    MemoryDump(
+                        sample_id=sample_id,
+                        reason=dump.reason,
+                        address=dump.address,
+                        size=dump.size,
+                        path=dump.path,
+                        sha256=dump.sha256,
+                    )
+                )
 
             # YARA + Sigma generation
             rules_dir = sample_rules_dir(sample_id)
             yara_name, yara_content = rule_generator.generate_yara(
                 sample, static_info, iocs, detections
             )
-            sigma_name, sigma_content = rule_generator.generate_sigma(
-                sample, iocs, detections
-            )
+            sigma_name, sigma_content = rule_generator.generate_sigma(sample, iocs, detections)
             yara_path = rules_dir / f"{yara_name}.yar"
             sigma_path = rules_dir / f"{sigma_name}.yml"
             yara_path.write_text(yara_content)
             sigma_path.write_text(sigma_content)
-            db.add(GeneratedRule(
-                sample_id=sample_id, kind="yara", name=yara_name,
-                path=str(yara_path), content=yara_content,
-            ))
-            db.add(GeneratedRule(
-                sample_id=sample_id, kind="sigma", name=sigma_name,
-                path=str(sigma_path), content=sigma_content,
-            ))
+            db.add(
+                GeneratedRule(
+                    sample_id=sample_id,
+                    kind="yara",
+                    name=yara_name,
+                    path=str(yara_path),
+                    content=yara_content,
+                )
+            )
+            db.add(
+                GeneratedRule(
+                    sample_id=sample_id,
+                    kind="sigma",
+                    name=sigma_name,
+                    path=str(sigma_path),
+                    content=sigma_content,
+                )
+            )
 
             sample_summary = {
-                "id": sample.id, "filename": sample.filename, "size": sample.size,
-                "md5": sample.md5, "sha1": sample.sha1, "sha256": sample.sha256,
-                "verdict": verdict, "threat_score": score, "tags": tags,
+                "id": sample.id,
+                "filename": sample.filename,
+                "size": sample.size,
+                "md5": sample.md5,
+                "sha1": sample.sha1,
+                "sha256": sample.sha256,
+                "verdict": verdict,
+                "threat_score": score,
+                "tags": tags,
             }
 
         # 6) Reports ---------------------------------------------------------
@@ -157,27 +183,41 @@ def run_analysis(sample_id: str) -> dict:
             sample = db.get(Sample, sample_id)
             sample.status = SampleStatus.COMPLETED
             sample.completed_at = datetime.now(timezone.utc)
-            db.add(Report(
-                sample_id=sample_id,
-                json_path=str(json_path),
-                pdf_path=str(pdf_path) if pdf_path else "",
-            ))
+            db.add(
+                Report(
+                    sample_id=sample_id,
+                    json_path=str(json_path),
+                    pdf_path=str(pdf_path) if pdf_path else "",
+                )
+            )
 
-        _publish(sample_id, "status", {
+        _publish(
+            sample_id,
+            "status",
+            {
+                "status": SampleStatus.COMPLETED,
+                "verdict": verdict,
+                "threat_score": score,
+                "emulated": emulated,
+            },
+        )
+        logger.info(
+            "analysis complete sample=%s verdict=%s score=%d events=%d iocs=%d",
+            sample_id,
+            verdict,
+            score,
+            len(recorder.events),
+            len(iocs),
+        )
+        return {
+            "sample_id": sample_id,
             "status": SampleStatus.COMPLETED,
             "verdict": verdict,
             "threat_score": score,
+            "events": len(recorder.events),
+            "iocs": len(iocs),
+            "dumps": len(dumps),
             "emulated": emulated,
-        })
-        logger.info(
-            "analysis complete sample=%s verdict=%s score=%d events=%d iocs=%d",
-            sample_id, verdict, score, len(recorder.events), len(iocs),
-        )
-        return {
-            "sample_id": sample_id, "status": SampleStatus.COMPLETED,
-            "verdict": verdict, "threat_score": score,
-            "events": len(recorder.events), "iocs": len(iocs),
-            "dumps": len(dumps), "emulated": emulated,
         }
 
     except Exception as exc:

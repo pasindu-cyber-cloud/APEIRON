@@ -1,4 +1,5 @@
 """Celery tasks."""
+
 from __future__ import annotations
 
 from .analyzer import engine

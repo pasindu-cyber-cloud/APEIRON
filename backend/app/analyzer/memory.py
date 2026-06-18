@@ -5,6 +5,7 @@ available the actual emulated memory region is read; otherwise a best-effort
 slice of the on-disk sample is captured so the pipeline always produces an
 inspectable artifact for suspicious events.
 """
+
 from __future__ import annotations
 
 import hashlib

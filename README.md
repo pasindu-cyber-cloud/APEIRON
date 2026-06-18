@@ -2,12 +2,12 @@
 
 # 🛡️ APEIRON
 
-### Custom PE/ELF Malware Sandbox with API Tracing
+### Defensive PE/ELF Malware-Analysis Sandbox (Research Prototype)
 
-Safely detonate Windows **PE** and Linux **ELF** binaries in a user-mode
-emulator, trace every API/syscall, extract IOCs, auto-generate **YARA** &
-**Sigma** rules, capture memory dumps on suspicious events, and explore it all
-from a real-time analyst dashboard.
+A Dockerized defensive malware-analysis sandbox prototype for Windows **PE** and
+Linux **ELF** files. It combines a production-style microservice architecture
+with static analysis, emulation-assisted behavior tracing, IOC extraction,
+YARA/Sigma rule generation, and a React analyst dashboard.
 
 [![CI](https://github.com/pasindu-cyber-cloud/APEIRON/actions/workflows/ci.yml/badge.svg)](https://github.com/pasindu-cyber-cloud/APEIRON/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
@@ -16,27 +16,69 @@ from a real-time analyst dashboard.
 
 </div>
 
-> ⚠️ **APEIRON executes untrusted, potentially malicious code.** Always run it
-> on a dedicated, disposable, network-isolated host. See [SECURITY.md](SECURITY.md).
+> ⚠️ **APEIRON analyzes untrusted, potentially malicious files.** Run it only on
+> a dedicated, disposable, network-isolated host. See the
+> [Security Notice](#-security-notice), [`SECURITY.md`](SECURITY.md), and the
+> [threat model](docs/threat-model.md).
+
+---
+
+## 📌 Overview
+
+APEIRON is a defensive malware-analysis sandbox prototype for PE/ELF files. It
+combines **FastAPI**, **Celery**, **Redis**, **Qiling-based emulation**, **IOC
+extraction**, **YARA/Sigma rule generation**, and a **React analyst dashboard**
+to demonstrate modern security-engineering and DevSecOps practices.
+
+It provides static analysis, emulation-assisted behavior tracing, IOC
+extraction, and detection-rule generation, surfaced through a real-time
+dashboard and a documented REST/WebSocket API.
+
+## 🚦 Project Status
+
+**Research prototype / portfolio project.** It is **not** intended to be exposed
+directly to the public internet or used as a replacement for a hardened
+enterprise malware sandbox. The emulation and container isolation provide
+defense in depth, not a guaranteed containment boundary. Designed for local
+research and portfolio demonstration.
 
 ---
 
 ## ✨ Features
 
-| Capability | Description |
-|---|---|
-| **PE & ELF emulation** | User-mode emulation via the [Qiling Framework](https://qiling.io) (Unicorn engine) — the sample never runs natively on the host. |
-| **Full API / syscall tracing** | Every resolved Windows API and Linux syscall is captured, categorized (file / registry / network / process / memory) and streamed live. |
-| **IOC extraction** | IPs, domains, URLs, emails, mutexes, registry keys, file paths, hashes and BTC addresses from both static strings and runtime behavior. |
-| **Auto rule generation** | Produces **YARA** and **Sigma** rules from observed behavior, written to disk and viewable/downloadable in the GUI. |
-| **Memory dumps** | Triggered automatically on suspicious events (process injection, privilege escalation, anti-analysis) and stored for inspection. |
-| **Heuristic detections** | MITRE ATT&CK-mapped behavior rules → threat score + verdict (benign → malicious). |
-| **Anti-evasion** | Masks virtualization/debugger artifacts and humanizes timing so malware behaves authentically. |
-| **Real-time dashboard** | React + Mantine UI: upload, live trace stream (WebSocket), IOC explorer, rule viewer, dump browser, timeline, search & filtering. |
-| **Programmatic API** | REST endpoints for submission and result retrieval, with OpenAPI docs. |
-| **Reports** | Detailed **JSON** and **PDF** reports per sample. |
-| **Built-in YARA** | Ships with packer + anti-VM/anti-debug detection rules. |
-| **Production-ready** | Dockerized microservices, Celery queue, SQLite/Postgres storage, structured logging, API-key auth, CI. |
+| Capability                          | Description                                                                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PE & ELF emulation**              | Emulation-assisted analysis via the [Qiling Framework](https://qiling.io) (Unicorn engine) — the sample runs in an emulated CPU/OS context rather than natively on the host. |
+| **High-signal API/syscall tracing** | Captures high-signal API/syscall activity through Qiling's logging and selected hooks, categorized (file / registry / network / process / memory) and streamed live.         |
+| **IOC extraction**                  | IPs, domains, URLs, emails, mutexes, registry keys, file paths, hashes and BTC addresses from static strings and observed behavior.                                          |
+| **Rule generation**                 | Generates **YARA** and **Sigma** rules from observed indicators, written to disk and viewable/downloadable in the dashboard.                                                 |
+| **Memory dumps**                    | Captured on selected suspicious events (e.g. process-injection APIs) and stored for inspection.                                                                              |
+| **Heuristic detections**            | MITRE ATT&CK-mapped behavior heuristics → threat score + verdict (benign → malicious).                                                                                       |
+| **Anti-evasion helpers**            | Best-effort masking of common virtualization/debugger artifacts and timing humanization to reduce trivial sandbox evasion (not exhaustive).                                  |
+| **Real-time dashboard**             | React + Mantine UI: upload, live trace stream (WebSocket), IOC explorer, rule viewer, dump browser, timeline, search & filtering.                                            |
+| **Programmatic API**                | REST endpoints for submission and result retrieval, with OpenAPI docs.                                                                                                       |
+| **Reports**                         | Per-sample **JSON** and **PDF** reports.                                                                                                                                     |
+| **Built-in YARA**                   | Ships with packer and anti-VM/anti-debug detection rules.                                                                                                                    |
+| **Production-style architecture**   | Dockerized microservices, Celery queue, SQLite/Postgres storage, structured logging, API-key auth, strict CORS, and CI.                                                      |
+
+> APEIRON aims to demonstrate the architecture and workflow of a modern malware
+> sandbox. Dynamic coverage depends on the emulation environment (see
+> [emulation setup](#enable-dynamic-emulation-optional)); without it the system
+> still performs static analysis, IOC extraction, and rule generation.
+
+---
+
+## 🔒 Security Notice
+
+- APEIRON is for **defensive research and portfolio demonstration only**.
+- **Do not upload or execute real malware** unless you are **legally authorized**
+  and working in an **isolated lab** environment.
+- **Do not expose this service publicly** without significant additional
+  hardening (authentication at the edge, network isolation, resource limits).
+- Review the **[threat model](docs/threat-model.md)** for deployment
+  assumptions, risks, current mitigations, and recommended hardening.
+- In production mode the backend **refuses to start** with a missing/placeholder
+  API key or a wildcard CORS configuration (see [Configuration](#️-configuration)).
 
 ---
 
@@ -93,30 +135,51 @@ from a real-time analyst dashboard.
 
 ## 🚀 Quick start
 
-### Prerequisites
+### Requirements
+
 - Docker + Docker Compose v2
 - ~4 GB RAM available to Docker
 
-### Run
+### 1. Configure the environment
 
 ```bash
 git clone https://github.com/pasindu-cyber-cloud/APEIRON.git
 cd APEIRON
-cp .env.example .env          # then edit secrets / API key
+cp .env.example .env
+```
+
+Then edit `.env`:
+
+- Set a strong **`APEIRON_API_KEY`** (the placeholder value blocks production startup).
+- Set **`APEIRON_ALLOWED_ORIGINS`** to the origin(s) your browser will use.
+- For relaxed local startup checks, set **`APEIRON_ENV=development`**.
+
+### 2. Start the stack
+
+```bash
 docker compose up --build
 ```
 
-Open the dashboard at **http://localhost:8080**.
-API docs (Swagger) at **http://localhost:8080/api/docs**.
+- Dashboard → **http://localhost:8080**
+- API docs (Swagger) → **http://localhost:8080/api/docs**
+- Health → **http://localhost:8080/api/health**
 
-### Enable full dynamic emulation (optional)
+### 3. Stop the stack
 
-Static analysis + tracing scaffolding works out of the box. For full user-mode
-execution you need two things: (1) the optional emulation Python extras, and
-(2) a [Qiling rootfs](https://github.com/qilingframework/rootfs).
+```bash
+docker compose down          # stop containers
+docker compose down -v       # also remove the data volume (samples, dumps, db)
+```
 
-The provided Docker image already installs the emulation extras
-(`requirements-emulation.txt`) on a best-effort basis. For a local checkout:
+### Enable dynamic emulation (optional)
+
+Static analysis, IOC extraction, and rule generation work out of the box. For
+emulation-assisted behavior tracing you need two things: (1) the optional
+emulation Python extras, and (2) a
+[Qiling rootfs](https://github.com/qilingframework/rootfs).
+
+The Docker image installs the emulation extras (`requirements-emulation.txt`) on
+a best-effort basis. For a local checkout:
 
 ```bash
 cd backend
@@ -133,25 +196,27 @@ git clone https://github.com/qilingframework/rootfs.git ./rootfs
 Add a bind mount to the `worker` and `api` services in `docker-compose.yml`:
 
 ```yaml
-    volumes:
-      - apeiron-data:/data
-      - ./rootfs:/data/rootfs:ro
+volumes:
+  - apeiron-data:/data
+  - ./rootfs:/data/rootfs:ro
 ```
 
-> Without a rootfs (or when `APEIRON_ENABLE_EMULATION=false`), APEIRON gracefully
-> falls back to static analysis and still extracts IOCs and generates rules.
+> Without a rootfs (or when `APEIRON_ENABLE_EMULATION=false`), APEIRON falls back
+> to static analysis and still extracts IOCs and generates rules.
 
 ### Local development (without Docker)
 
 ```bash
-# Backend
+# Backend (needs a running Redis for the worker)
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-export DATABASE_URL="sqlite:///./apeiron.sqlite3" APEIRON_DATA_DIR=./data \
+export APEIRON_ENV=development \
+       DATABASE_URL="sqlite:///./apeiron.sqlite3" \
+       APEIRON_DATA_DIR=./data \
        APEIRON_ENABLE_EMULATION=false
 uvicorn app.main:app --reload                       # API on :8000
-celery -A app.worker.celery_app worker -Q analysis  # worker (needs Redis)
+celery -A app.worker.celery_app worker -Q analysis  # worker (separate shell)
 
 # Frontend
 cd ../frontend
@@ -163,33 +228,41 @@ npm run dev                                          # SPA on :5173 (proxies to 
 
 ## 🔌 API reference
 
-Base path: `/api`. If `APEIRON_API_KEY` is set, send it as the `X-API-Key` header.
+Base path: `/api`. When an API key is configured, send it as the `X-API-Key`
+header on every request.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/samples` | Upload a PE/ELF sample (multipart field `file`). Returns `{id, status, sha256}`. |
-| `GET` | `/api/samples` | List samples. Query: `q`, `status`, `tag`, `limit`, `offset`. |
-| `GET` | `/api/samples/{id}` | Full sample detail (IOCs, rules, dumps, report). |
-| `DELETE` | `/api/samples/{id}` | Delete a sample and all artifacts. |
-| `GET` | `/api/samples/{id}/trace` | Trace events. Query: `category`, `suspicious`, `q`, `limit`, `offset`. |
-| `GET` | `/api/samples/{id}/report.json` | JSON report. |
-| `GET` | `/api/samples/{id}/report.pdf` | PDF report. |
-| `GET` | `/api/samples/{id}/dumps/{dump_id}` | Download a memory dump. |
-| `GET` | `/api/iocs` | Cross-sample IOC search. Query: `type`, `q`, `sample_id`. |
-| `GET` | `/api/iocs/stats` | IOC counts by type. |
-| `GET` | `/api/rules` | Generated rules. Query: `kind` (yara/sigma), `sample_id`. |
-| `GET` | `/api/rules/{id}/download` | Download a generated rule. |
-| `GET` | `/api/rules/builtin` | List built-in YARA rules. |
-| `GET` | `/api/health` | Service + component health. |
-| `GET` | `/api/stats` | Dashboard statistics. |
-| `WS` | `/ws/trace/{id}` | Live trace stream for one sample. |
-| `WS` | `/ws/events` | Global analysis event feed. |
+| Method   | Endpoint                            | Description                                                                      |
+| -------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `POST`   | `/api/samples`                      | Upload a PE/ELF sample (multipart field `file`). Returns `{id, status, sha256}`. |
+| `GET`    | `/api/samples`                      | List samples. Query: `q`, `status`, `tag`, `limit`, `offset`.                    |
+| `GET`    | `/api/samples/{id}`                 | Full sample detail (IOCs, rules, dumps, report).                                 |
+| `DELETE` | `/api/samples/{id}`                 | Delete a sample and all artifacts.                                               |
+| `GET`    | `/api/samples/{id}/trace`           | Trace events. Query: `category`, `suspicious`, `q`, `limit`, `offset`.           |
+| `GET`    | `/api/samples/{id}/report.json`     | JSON report.                                                                     |
+| `GET`    | `/api/samples/{id}/report.pdf`      | PDF report.                                                                      |
+| `GET`    | `/api/samples/{id}/dumps/{dump_id}` | Download a memory dump.                                                          |
+| `GET`    | `/api/iocs`                         | Cross-sample IOC search. Query: `type`, `q`, `sample_id`.                        |
+| `GET`    | `/api/iocs/stats`                   | IOC counts by type.                                                              |
+| `GET`    | `/api/rules`                        | Generated rules. Query: `kind` (yara/sigma), `sample_id`.                        |
+| `GET`    | `/api/rules/{id}/download`          | Download a generated rule.                                                       |
+| `GET`    | `/api/rules/builtin`                | List built-in YARA rules.                                                        |
+| `GET`    | `/api/health`                       | Service + component health.                                                      |
+| `GET`    | `/api/stats`                        | Dashboard statistics.                                                            |
+| `WS`     | `/ws/trace/{id}`                    | Live trace stream for one sample.                                                |
+| `WS`     | `/ws/events`                        | Global analysis event feed.                                                      |
+
+### Using the API key header
+
+```bash
+export APEIRON_API_KEY="your-strong-key"   # must match the backend value
+curl -H "X-API-Key: $APEIRON_API_KEY" http://localhost:8080/api/stats
+```
 
 ### Example: submit and poll
 
 ```bash
-# Submit
-SAMPLE=$(curl -s -F "file=@malware.exe" \
+# Submit a (harmless, authorized) sample
+SAMPLE=$(curl -s -F "file=@sample.bin" \
   -H "X-API-Key: $APEIRON_API_KEY" \
   http://localhost:8080/api/samples | jq -r .id)
 
@@ -205,7 +278,7 @@ curl -s -H "X-API-Key: $APEIRON_API_KEY" \
 ### Example: stream live trace (Python)
 
 ```python
-import asyncio, websockets, json
+import asyncio, json, websockets
 
 async def main(sample_id):
     url = f"ws://localhost:8080/ws/trace/{sample_id}"
@@ -222,11 +295,8 @@ asyncio.run(main("<sample-id>"))
 
 ## 🖥️ Screenshots
 
-> Placeholders — replace with real captures in `docs/`.
-
-| Dashboard | Live API trace | Generated rules |
-|---|---|---|
-| ![dashboard](docs/screenshot-dashboard.png) | ![trace](docs/screenshot-trace.png) | ![rules](docs/screenshot-rules.png) |
+> Screenshots will be added after local demo capture. Planned views: the analyst
+> dashboard, the live API trace stream, and the generated YARA/Sigma rules.
 
 ---
 
@@ -236,6 +306,8 @@ asyncio.run(main("<sample-id>"))
 APEIRON/
 ├── docker-compose.yml          # redis · api · worker · frontend
 ├── .env.example                # configuration template
+├── docs/
+│   └── threat-model.md         # risks, mitigations, hardening guidance
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements*.txt
@@ -261,38 +333,52 @@ APEIRON/
 
 Key environment variables (see [`.env.example`](.env.example) for the full list):
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `APEIRON_API_KEY` | _(empty)_ | If set, required via `X-API-Key`. |
-| `DATABASE_URL` | sqlite in `/data` | Use Postgres for concurrency: `postgresql+psycopg2://…`. |
-| `APEIRON_ENABLE_EMULATION` | `true` | Toggle Qiling emulation. |
-| `APEIRON_QILING_ROOTFS` | `/data/rootfs` | Path to the Qiling rootfs. |
-| `APEIRON_EMULATION_TIMEOUT` | `60` | Max emulation seconds per sample. |
-| `APEIRON_ANTI_EVASION` | `true` | Mask VM/debugger artifacts. |
-| `APEIRON_MAX_UPLOAD_BYTES` | `67108864` | Upload size cap (64 MiB). |
+| Variable                    | Default                                       | Purpose                                                                                                     |
+| --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `APEIRON_ENV`               | `production`                                  | `production` enables strict startup checks; `development` relaxes them.                                     |
+| `APEIRON_API_KEY`           | `change-this-before-running`                  | Shared secret for the `X-API-Key` header. **Production startup fails** if empty or left as the placeholder. |
+| `APEIRON_ALLOWED_ORIGINS`   | `http://localhost:5173,http://localhost:8080` | Comma-separated CORS allow-list. Wildcards (`*`) are rejected in production.                                |
+| `DATABASE_URL`              | sqlite in `/data`                             | Use Postgres for concurrency: `postgresql+psycopg2://…`.                                                    |
+| `APEIRON_ENABLE_EMULATION`  | `true`                                        | Toggle Qiling emulation.                                                                                    |
+| `APEIRON_QILING_ROOTFS`     | `/data/rootfs`                                | Path to the Qiling rootfs.                                                                                  |
+| `APEIRON_EMULATION_TIMEOUT` | `60`                                          | Max emulation seconds per sample.                                                                           |
+| `APEIRON_ANTI_EVASION`      | `true`                                        | Enable best-effort masking of VM/debugger artifacts.                                                        |
+| `APEIRON_MAX_UPLOAD_BYTES`  | `67108864`                                    | Upload size cap (64 MiB).                                                                                   |
+
+**Startup safety:** in `production` mode the backend refuses to start if the API
+key is missing/placeholder or if CORS is wildcard/empty. In `development` mode it
+starts but logs clear warnings.
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & checks
 
 ```bash
+# Backend: lint + tests
 cd backend
 pip install -r requirements-dev.txt
+ruff format --check app tests
 ruff check app tests
 pytest --cov=app
+
+# Frontend: lint + build
+cd ../frontend
+npm install
+npm run lint
+npm run build
 ```
 
-The CI workflow runs backend lint + tests, builds the frontend, and validates
-the Docker images on every push and PR.
+CI runs all of the above (backend install/lint/tests, frontend install/lint/build)
+plus a Docker Compose build on every push and PR. Frontend lint failures fail CI.
 
 ---
 
 ## 🧭 Roadmap
 
 - Network capture (PCAP) + simulated internet (INetSim-style)
-- Full-system emulation option for kernel-mode behavior
+- Stronger isolation: per-sample ephemeral containers, seccomp/AppArmor, resource limits
 - ATT&CK Navigator layer export
-- Clustering of samples by behavior / ssdeep
+- Clustering of samples by behavior / fuzzy hash
 - VirusTotal / MISP enrichment connectors
 
 ---
@@ -301,5 +387,5 @@ the Docker images on every push and PR.
 
 [MIT](LICENSE) © APEIRON contributors.
 
-APEIRON is a defensive security / malware-analysis tool. Use it only on
-binaries you are authorized to analyze, and only in isolated environments.
+APEIRON is a defensive security / malware-analysis research tool. Use it only on
+files you are authorized to analyze, and only in isolated environments.

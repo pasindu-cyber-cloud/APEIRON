@@ -1,4 +1,5 @@
 """Static analysis: format detection, headers, imports, sections, entropy, strings."""
+
 from __future__ import annotations
 
 import math
@@ -114,11 +115,7 @@ def _analyze_pe(path: Path, data: bytes) -> dict[str, Any]:
         if hasattr(pe, "DIRECTORY_ENTRY_IMPORT"):
             for entry in pe.DIRECTORY_ENTRY_IMPORT:
                 dll = entry.dll.decode("ascii", "ignore") if entry.dll else "?"
-                funcs = [
-                    imp.name.decode("ascii", "ignore")
-                    for imp in entry.imports
-                    if imp.name
-                ]
+                funcs = [imp.name.decode("ascii", "ignore") for imp in entry.imports if imp.name]
                 imports[dll] = funcs
         info["imports"] = imports
         info["imported_api"] = sorted({fn for fns in imports.values() for fn in fns})
