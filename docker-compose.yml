@@ -1,0 +1,95 @@
+# =============================================================================
+# APEIRON - Custom PE/ELF Malware Sandbox with API Tracing
+# Microservice topology:
+#   redis     - broker + result backend + pub/sub for live trace events
+#   api       - FastAPI REST + WebSocket gateway
+#   worker    - Celery worker running the isolated analysis engine
+#   frontend  - React dashboard served by nginx (also proxies /api and /ws)
+# =============================================================================
+version: "3.9"
+
+name: apeiron
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - apeiron-net
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips="*"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - apeiron-data:/data
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/api/health'); sys.exit(0)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apeiron-net
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    # The worker executes untrusted binaries via user-mode emulation.
+    # Drop privileges and tighten the sandbox surface.
+    command: >
+      celery -A app.worker.celery_app worker
+      --loglevel=INFO --concurrency=2 --max-tasks-per-child=10 -Q analysis
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - apeiron-data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - apeiron-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: /api
+        VITE_WS_BASE: /ws
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    networks:
+      - apeiron-net
+
+volumes:
+  redis-data:
+  apeiron-data:
+
+networks:
+  apeiron-net:
+    driver: bridge

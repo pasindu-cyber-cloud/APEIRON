@@ -1,0 +1,36 @@
+# Core runtime dependencies. These all ship manylinux wheels and install
+# cleanly in CI / slim images. Heavy or build-from-source emulation extras live
+# in requirements-emulation.txt and are loaded lazily with graceful fallback.
+
+# --- Web framework / ASGI ---
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+websockets==12.0
+
+# --- Settings / validation ---
+pydantic==2.7.4
+pydantic-settings==2.3.4
+
+# --- Database ---
+SQLAlchemy==2.0.31
+psycopg2-binary==2.9.9
+
+# --- Queue / broker ---
+celery==5.4.0
+redis==5.0.7
+
+# --- Binary / static analysis ---
+pefile==2023.2.7
+pyelftools==0.31
+python-magic==0.4.27
+capstone==5.0.1
+yara-python==4.5.1
+
+# --- Reporting ---
+reportlab==4.2.2
+jinja2==3.1.4
+
+# --- Utilities / test client ---
+python-dotenv==1.0.1
+httpx==0.27.0

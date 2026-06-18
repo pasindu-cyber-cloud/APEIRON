@@ -1,0 +1,45 @@
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(18, 184, 134, 0.12), transparent),
+    radial-gradient(900px 500px at -10% 10%, rgba(34, 139, 230, 0.10), transparent),
+    #0b0e11;
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.trace-row-suspicious {
+  border-left: 3px solid var(--mantine-color-red-6);
+}
+
+.code-block {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12.5px;
+  line-height: 1.5;
+  background: #0d1117;
+  color: #c9d1d9;
+  border: 1px solid #1f2933;
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow: auto;
+  max-height: 520px;
+  white-space: pre;
+}
+
+.scroll-feed {
+  max-height: 60vh;
+  overflow-y: auto;
+}

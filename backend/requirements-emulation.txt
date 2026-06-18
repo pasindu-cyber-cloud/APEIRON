@@ -1,0 +1,14 @@
+# Optional user-mode emulation + fuzzy-hashing extras.
+#
+# These pull in native / build-from-source transitive dependencies (Unicorn,
+# keystone-engine, libfuzzy, etc.) that are heavier and can be environment
+# sensitive. The analysis engine imports them lazily and falls back to
+# static-only analysis when they are absent, so they are intentionally kept
+# out of the core requirements.
+#
+# Install for full dynamic analysis:
+#   pip install -r requirements-emulation.txt
+
+qiling==1.4.6
+unicorn==2.0.1.post1
+ssdeep==3.4 ; platform_system != "Windows"
