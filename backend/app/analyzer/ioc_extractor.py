@@ -1,4 +1,5 @@
 """Indicator-of-Compromise extraction from strings and runtime trace data."""
+
 from __future__ import annotations
 
 import re
@@ -7,9 +8,7 @@ from collections.abc import Iterable
 from .types import IOCRecord, TraceRecord
 
 # --- Regular expressions ---------------------------------------------------
-_IPV4 = re.compile(
-    r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
-)
+_IPV4 = re.compile(r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b")
 _URL = re.compile(r"\b(?:https?|ftp)://[^\s\"'<>\\)]{4,2048}", re.IGNORECASE)
 _DOMAIN = re.compile(
     r"\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+"

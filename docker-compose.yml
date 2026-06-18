@@ -6,7 +6,7 @@
 #   worker    - Celery worker running the isolated analysis engine
 #   frontend  - React dashboard served by nginx (also proxies /api and /ws)
 # =============================================================================
-version: "3.9"
+version: '3.9'
 
 name: apeiron
 
@@ -14,11 +14,11 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    command: ['redis-server', '--save', '60', '1', '--loglevel', 'warning']
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -39,9 +39,15 @@ services:
     volumes:
       - apeiron-data:/data
     expose:
-      - "8000"
+      - '8000'
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/api/health'); sys.exit(0)"]
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/api/health'); sys.exit(0)",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -82,7 +88,7 @@ services:
     depends_on:
       - api
     ports:
-      - "8080:80"
+      - '8080:80'
     networks:
       - apeiron-net
 

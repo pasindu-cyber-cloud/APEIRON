@@ -1,6 +1,9 @@
 import { Group, Paper, SimpleGrid, Text } from '@mantine/core';
 import {
-  IconFileAnalytics, IconBug, IconReportSearch, IconDeviceSdCard,
+  IconFileAnalytics,
+  IconBug,
+  IconReportSearch,
+  IconDeviceSdCard,
 } from '@tabler/icons-react';
 
 function Stat({ icon: Icon, label, value, color }) {
@@ -9,8 +12,12 @@ function Stat({ icon: Icon, label, value, color }) {
       <Group gap="sm" wrap="nowrap">
         <Icon size={28} color={`var(--mantine-color-${color}-5)`} />
         <div>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>{label}</Text>
-          <Text fw={700} size="xl">{value ?? 0}</Text>
+          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+            {label}
+          </Text>
+          <Text fw={700} size="xl">
+            {value ?? 0}
+          </Text>
         </div>
       </Group>
     </Paper>

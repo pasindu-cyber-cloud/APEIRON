@@ -1,11 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ActionIcon, AppShell, Badge, Burger, Group, Stack, Text, Title, Tooltip,
+  ActionIcon,
+  AppShell,
+  Badge,
+  Burger,
+  Group,
+  Stack,
+  Text,
+  Title,
+  Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
-  IconShieldHalfFilled, IconRadar2, IconSettings, IconBrandGithub,
+  IconShieldHalfFilled,
+  IconRadar2,
+  IconSettings,
+  IconBrandGithub,
 } from '@tabler/icons-react';
 import { api, eventsSocketUrl } from './api/client';
 import { useWebSocket } from './hooks/useWebSocket';
@@ -35,10 +46,14 @@ export default function App() {
   const refreshStats = useCallback(async () => {
     try {
       setStats(await api.stats());
-    } catch (_e) { /* non-fatal */ }
+    } catch (_e) {
+      /* non-fatal */
+    }
   }, []);
 
-  useEffect(() => { refreshSamples(); }, [refreshSamples]);
+  useEffect(() => {
+    refreshSamples();
+  }, [refreshSamples]);
   useEffect(() => {
     refreshStats();
     const t = setInterval(refreshStats, 5000);
@@ -46,17 +61,21 @@ export default function App() {
   }, [refreshStats]);
 
   // Global event feed: refresh lists whenever a sample changes status.
-  const onGlobalEvent = useCallback((evt) => {
-    if (evt.type === 'status') {
-      refreshSamples();
-      refreshStats();
-    }
-  }, [refreshSamples, refreshStats]);
+  const onGlobalEvent = useCallback(
+    (evt) => {
+      if (evt.type === 'status') {
+        refreshSamples();
+        refreshStats();
+      }
+    },
+    [refreshSamples, refreshStats]
+  );
   const { connected } = useWebSocket(eventsSocketUrl(), onGlobalEvent);
 
   const handleUploaded = (resp) => {
     notifications.show({
-      color: 'apeiron', title: 'Sample queued',
+      color: 'apeiron',
+      title: 'Sample queued',
       message: `${resp.sha256.slice(0, 16)}… is now being analyzed.`,
     });
     refreshSamples();
@@ -74,8 +93,12 @@ export default function App() {
           <Group gap="xs">
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             <IconShieldHalfFilled size={28} color="var(--mantine-color-apeiron-5)" />
-            <Title order={3} style={{ letterSpacing: 1 }}>APEIRON</Title>
-            <Badge variant="light" color="apeiron" size="sm">PE / ELF Sandbox</Badge>
+            <Title order={3} style={{ letterSpacing: 1 }}>
+              APEIRON
+            </Title>
+            <Badge variant="light" color="apeiron" size="sm">
+              PE / ELF Sandbox
+            </Badge>
           </Group>
           <Group gap="sm">
             <Tooltip label={connected ? 'Live feed connected' : 'Live feed offline'}>
@@ -93,7 +116,10 @@ export default function App() {
               </ActionIcon>
             </Tooltip>
             <ActionIcon
-              variant="subtle" component="a" target="_blank"
+              variant="subtle"
+              component="a"
+              target="_blank"
+              rel="noreferrer"
               href="https://github.com/pasindu-cyber-cloud/APEIRON"
             >
               <IconBrandGithub size={18} />
@@ -122,7 +148,10 @@ export default function App() {
           {selectedId ? (
             <SampleDetail
               sampleId={selectedId}
-              onDeleted={() => { setSelectedId(null); refreshSamples(); }}
+              onDeleted={() => {
+                setSelectedId(null);
+                refreshSamples();
+              }}
             />
           ) : (
             <Stack align="center" justify="center" mih={300} gap={6}>
@@ -133,7 +162,13 @@ export default function App() {
         </Stack>
       </AppShell.Main>
 
-      <ApiKeyModal opened={keyModal} onClose={() => { setKeyModal(false); refreshSamples(); }} />
+      <ApiKeyModal
+        opened={keyModal}
+        onClose={() => {
+          setKeyModal(false);
+          refreshSamples();
+        }}
+      />
     </AppShell>
   );
 }

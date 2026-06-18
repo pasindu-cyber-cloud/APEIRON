@@ -4,6 +4,7 @@ The analysis worker publishes JSON events to per-sample channels and a global
 ``apeiron:events`` channel. The API's WebSocket endpoint subscribes and relays
 to connected browsers.
 """
+
 from __future__ import annotations
 
 import json

@@ -1,4 +1,5 @@
 """Structured logging setup shared across api and worker processes."""
+
 from __future__ import annotations
 
 import json

@@ -3,6 +3,7 @@
 All settings are prefixed with ``APEIRON_`` except a handful of well-known
 third-party variables (DATABASE_URL, CELERY_*, REDIS_URL).
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -10,6 +11,21 @@ from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Values that mean "the operator has not configured a real secret yet".
+# These are rejected in production so a deployment cannot start with a
+# guessable API key.
+PLACEHOLDER_API_KEYS = frozenset(
+    {
+        "",
+        "change-me",
+        "change-this-before-running",
+        "changeme",
+    }
+)
+
+# Safe localhost defaults used for CORS during local development.
+DEFAULT_DEV_ORIGINS = ("http://localhost:5173", "http://localhost:8080")
 
 
 class Settings(BaseSettings):
@@ -26,7 +42,19 @@ class Settings(BaseSettings):
     api_host: str = Field("0.0.0.0", alias="APEIRON_API_HOST")
     api_port: int = Field(8000, alias="APEIRON_API_PORT")
     log_level: str = Field("INFO", alias="APEIRON_LOG_LEVEL")
+
+    # --- Authentication ---
+    # Required (and validated) in production. Sent by clients as the
+    # ``X-API-Key`` request header.
     api_key: str = Field("", alias="APEIRON_API_KEY")
+
+    # --- CORS ---
+    # Comma-separated list of allowed browser origins. Wildcards are rejected
+    # in production. Example: "http://localhost:5173,http://localhost:8080".
+    allowed_origins_raw: str = Field(
+        "http://localhost:5173,http://localhost:8080",
+        alias="APEIRON_ALLOWED_ORIGINS",
+    )
 
     # --- Database ---
     database_url: str = Field("sqlite:////data/apeiron.sqlite3", alias="DATABASE_URL")
@@ -54,6 +82,70 @@ class Settings(BaseSettings):
     # --- Redis pub/sub channels ---
     trace_channel_prefix: str = "apeiron:trace"
     events_channel: str = "apeiron:events"
+
+    # --- Derived helpers ---------------------------------------------------
+    @property
+    def is_production(self) -> bool:
+        return self.env.strip().lower() in {"production", "prod"}
+
+    @property
+    def is_development(self) -> bool:
+        return not self.is_production
+
+    @property
+    def api_key_is_placeholder(self) -> bool:
+        return self.api_key.strip().lower() in PLACEHOLDER_API_KEYS
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        """Parsed, de-duplicated list of allowed CORS origins.
+
+        Falls back to safe localhost defaults in development when nothing is
+        configured. Never returns a wildcard.
+        """
+        origins = [o.strip() for o in self.allowed_origins_raw.split(",") if o.strip()]
+        cleaned = [o for o in origins if o != "*"]
+        if not cleaned and self.is_development:
+            return list(DEFAULT_DEV_ORIGINS)
+        # Preserve order while removing duplicates.
+        return list(dict.fromkeys(cleaned))
+
+    @property
+    def cors_is_wildcard(self) -> bool:
+        return "*" in {o.strip() for o in self.allowed_origins_raw.split(",")}
+
+    def security_report(self) -> tuple[list[str], list[str]]:
+        """Return (errors, warnings) describing the current security posture.
+
+        Errors are fatal in production; warnings are always advisory.
+        """
+        errors: list[str] = []
+        warnings: list[str] = []
+
+        if self.api_key_is_placeholder:
+            message = (
+                "APEIRON_API_KEY is empty or still set to a placeholder value. "
+                "Set a strong, unique value before running."
+            )
+            (errors if self.is_production else warnings).append(message)
+
+        if self.cors_is_wildcard:
+            message = (
+                "APEIRON_ALLOWED_ORIGINS contains a wildcard ('*'). "
+                "Specify explicit origins instead."
+            )
+            (errors if self.is_production else warnings).append(message)
+
+        if self.is_production and not self.allowed_origins:
+            errors.append(
+                "No valid APEIRON_ALLOWED_ORIGINS configured for production. "
+                "Set a comma-separated list of trusted origins."
+            )
+
+        if self.is_production and self.secret_key.strip().lower() in {"", "change-me"}:
+            warnings.append("APEIRON_SECRET_KEY is using a default value; set a unique secret.")
+
+        return errors, warnings
 
     def ensure_dirs(self) -> None:
         for directory in (

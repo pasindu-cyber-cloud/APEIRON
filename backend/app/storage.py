@@ -1,4 +1,5 @@
 """Filesystem storage helpers for samples, dumps, reports and rules."""
+
 from __future__ import annotations
 
 import hashlib

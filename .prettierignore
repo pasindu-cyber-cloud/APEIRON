@@ -1,0 +1,10 @@
+node_modules
+frontend/dist
+frontend/node_modules
+backend
+*.yar
+*.yara
+rootfs
+data
+*.lock
+package-lock.json

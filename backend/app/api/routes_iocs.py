@@ -1,4 +1,5 @@
 """Cross-sample IOC search."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
@@ -34,7 +35,5 @@ def search_iocs(
 
 @router.get("/stats", dependencies=[Depends(require_api_key)])
 def ioc_stats(db: Session = Depends(get_db)) -> dict:
-    rows = db.execute(
-        select(IOC.ioc_type, func.count(IOC.id)).group_by(IOC.ioc_type)
-    ).all()
+    rows = db.execute(select(IOC.ioc_type, func.count(IOC.id)).group_by(IOC.ioc_type)).all()
     return {ioc_type: count for ioc_type, count in rows}

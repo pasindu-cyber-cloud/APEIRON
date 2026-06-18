@@ -1,4 +1,5 @@
 """Analysis report generation (JSON always, PDF when reportlab is available)."""
+
 from __future__ import annotations
 
 import json
@@ -79,37 +80,50 @@ def write_pdf_report(sample_id: str, report: dict[str, Any]) -> Path | None:
     story.append(Spacer(1, 6 * mm))
 
     verdict = sample.get("verdict", "unknown")
-    story.append(Paragraph(f"<b>Verdict:</b> {verdict} "
-                           f"(threat score {sample.get('threat_score', 0)}/100)",
-                           styles["Heading2"]))
+    story.append(
+        Paragraph(
+            f"<b>Verdict:</b> {verdict} (threat score {sample.get('threat_score', 0)}/100)",
+            styles["Heading2"],
+        )
+    )
 
     meta_rows = [
         ["Filename", sample.get("filename", "")],
         ["SHA256", sample.get("sha256", "")],
         ["MD5", sample.get("md5", "")],
-        ["Format", f"{report['static'].get('file_format')} / "
-                   f"{report['static'].get('arch')} ({report['static'].get('bits')}-bit)"],
+        [
+            "Format",
+            f"{report['static'].get('file_format')} / "
+            f"{report['static'].get('arch')} ({report['static'].get('bits')}-bit)",
+        ],
         ["Size", str(sample.get("size", 0)) + " bytes"],
         ["Tags", ", ".join(sample.get("tags", [])) or "-"],
     ]
     table = Table(meta_rows, colWidths=[35 * mm, 140 * mm])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#1f2933")),
-        ("TEXTCOLOR", (0, 0), (0, -1), colors.white),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-    ]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#1f2933")),
+                ("TEXTCOLOR", (0, 0), (0, -1), colors.white),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
     story.append(table)
     story.append(Spacer(1, 6 * mm))
 
     story.append(Paragraph("Detections", styles["Heading2"]))
     if report["detections"]:
         items = [
-            ListItem(Paragraph(
-                f"<b>{d['name']}</b> [{d['severity']}] "
-                f"({', '.join(d.get('mitre', []))}) - {d['description']}",
-                styles["BodyText"]))
+            ListItem(
+                Paragraph(
+                    f"<b>{d['name']}</b> [{d['severity']}] "
+                    f"({', '.join(d.get('mitre', []))}) - {d['description']}",
+                    styles["BodyText"],
+                )
+            )
             for d in report["detections"]
         ]
         story.append(ListFlowable(items, bulletType="bullet"))
@@ -117,29 +131,35 @@ def write_pdf_report(sample_id: str, report: dict[str, Any]) -> Path | None:
         story.append(Paragraph("No notable detections.", styles["BodyText"]))
     story.append(Spacer(1, 4 * mm))
 
-    story.append(Paragraph(f"Indicators of Compromise ({len(report['iocs'])})",
-                           styles["Heading2"]))
+    story.append(Paragraph(f"Indicators of Compromise ({len(report['iocs'])})", styles["Heading2"]))
     if report["iocs"]:
         ioc_rows = [["Type", "Value", "Count"]]
         for ioc in report["iocs"][:60]:
             ioc_rows.append([ioc["ioc_type"], ioc["value"][:90], str(ioc.get("count", 1))])
         ioc_table = Table(ioc_rows, colWidths=[25 * mm, 130 * mm, 15 * mm])
-        ioc_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#334155")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTSIZE", (0, 0), (-1, -1), 7),
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.lightgrey),
-        ]))
+        ioc_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#334155")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.lightgrey),
+                ]
+            )
+        )
         story.append(ioc_table)
     else:
         story.append(Paragraph("No IOCs extracted.", styles["BodyText"]))
     story.append(Spacer(1, 4 * mm))
 
-    story.append(Paragraph(
-        f"Memory dumps: {len(report['memory_dumps'])} | "
-        f"Generated rules: {len(report['generated_rules'])} | "
-        f"Trace events: {report['trace_event_count']}",
-        styles["BodyText"]))
+    story.append(
+        Paragraph(
+            f"Memory dumps: {len(report['memory_dumps'])} | "
+            f"Generated rules: {len(report['generated_rules'])} | "
+            f"Trace events: {report['trace_event_count']}",
+            styles["BodyText"],
+        )
+    )
 
     try:
         doc.build(story)

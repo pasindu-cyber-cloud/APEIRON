@@ -3,6 +3,7 @@
 These are intentionally decoupled from the ORM models so the engine can run
 (and be unit-tested) without a database.
 """
+
 from __future__ import annotations
 
 import time

@@ -30,8 +30,13 @@ def test_registry_and_localhost_filtering():
 
 def test_extract_from_trace_mutex():
     events = [
-        TraceRecord(seq=1, rel_ts=0.1, category="api", name="CreateMutexA",
-                    args={"lpName": "Global\\EvilMutex"}),
+        TraceRecord(
+            seq=1,
+            rel_ts=0.1,
+            category="api",
+            name="CreateMutexA",
+            args={"lpName": "Global\\EvilMutex"},
+        ),
     ]
     iocs = ie.extract_from_trace(events)
     assert any(i.ioc_type == "mutex" and "EvilMutex" in i.value for i in iocs)

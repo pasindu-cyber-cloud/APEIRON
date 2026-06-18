@@ -1,4 +1,5 @@
 """Generated + built-in detection rule endpoints."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,8 +43,9 @@ def list_builtin_rules() -> dict:
     return {"rules_dir": str(base), "files": files}
 
 
-@router.get("/builtin/{name}", response_class=PlainTextResponse,
-            dependencies=[Depends(require_api_key)])
+@router.get(
+    "/builtin/{name}", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)]
+)
 def get_builtin_rule(name: str) -> str:
     base = Path(settings.builtin_rules_dir)
     target = (base / name).resolve()
@@ -61,8 +63,9 @@ def get_rule(rule_id: int, db: Session = Depends(get_db)) -> RuleOut:
     return RuleOut.model_validate(rule)
 
 
-@router.get("/{rule_id}/download", response_class=PlainTextResponse,
-            dependencies=[Depends(require_api_key)])
+@router.get(
+    "/{rule_id}/download", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)]
+)
 def download_rule(rule_id: int, db: Session = Depends(get_db)) -> PlainTextResponse:
     rule = db.get(GeneratedRule, rule_id)
     if rule is None:

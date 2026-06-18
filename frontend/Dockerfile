@@ -10,9 +10,10 @@ ENV VITE_API_BASE=$VITE_API_BASE
 ENV VITE_WS_BASE=$VITE_WS_BASE
 
 COPY package.json ./
-# Use package-lock if present for reproducible installs; fall back otherwise.
+# Use a clean, reproducible install from the lockfile when present; otherwise
+# fall back to a regular install (no lockfile committed yet).
 COPY package-lock.json* ./
-RUN npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 COPY . .
 RUN npm run build

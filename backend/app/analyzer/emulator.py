@@ -9,6 +9,7 @@ If Qiling or a suitable rootfs is unavailable, ``run_emulation`` records an
 informational event and returns ``False`` so the engine continues with static
 results only.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,13 +26,51 @@ logger = get_logger("apeiron.emulator")
 # Map keywords found in API names to a trace category.
 _CATEGORY_HINTS = (
     (("RegOpenKey", "RegSetValue", "RegCreateKey", "RegQueryValue", "RegDeleteKey"), "registry"),
-    (("CreateFile", "WriteFile", "ReadFile", "DeleteFile", "MoveFile", "open", "read",
-      "write", "unlink", "fopen"), "file"),
-    (("socket", "connect", "send", "recv", "WSAStartup", "InternetConnect",
-      "HttpSendRequest", "WinHttp", "getaddrinfo", "gethostbyname", "bind", "listen"),
-     "network"),
-    (("CreateProcess", "ShellExecute", "WinExec", "fork", "execve", "CreateRemoteThread",
-      "VirtualAllocEx", "WriteProcessMemory"), "process"),
+    (
+        (
+            "CreateFile",
+            "WriteFile",
+            "ReadFile",
+            "DeleteFile",
+            "MoveFile",
+            "open",
+            "read",
+            "write",
+            "unlink",
+            "fopen",
+        ),
+        "file",
+    ),
+    (
+        (
+            "socket",
+            "connect",
+            "send",
+            "recv",
+            "WSAStartup",
+            "InternetConnect",
+            "HttpSendRequest",
+            "WinHttp",
+            "getaddrinfo",
+            "gethostbyname",
+            "bind",
+            "listen",
+        ),
+        "network",
+    ),
+    (
+        (
+            "CreateProcess",
+            "ShellExecute",
+            "WinExec",
+            "fork",
+            "execve",
+            "CreateRemoteThread",
+            "VirtualAllocEx",
+            "WriteProcessMemory",
+        ),
+        "process",
+    ),
     (("VirtualAlloc", "VirtualProtect", "mmap", "mprotect", "HeapAlloc"), "memory"),
 )
 
@@ -135,8 +174,10 @@ def run_emulation(
         from qiling.const import QL_VERBOSE  # type: ignore
     except Exception as exc:
         recorder.record(
-            "api", "emulation.unavailable",
-            detail=f"Qiling not importable: {exc}", severity="info",
+            "api",
+            "emulation.unavailable",
+            detail=f"Qiling not importable: {exc}",
+            severity="info",
         )
         logger.warning("Qiling unavailable: %s", exc)
         return False, dumps
@@ -148,7 +189,8 @@ def run_emulation(
     )
     if rootfs is None:
         recorder.record(
-            "api", "emulation.no_rootfs",
+            "api",
+            "emulation.no_rootfs",
             detail=f"No rootfs under {settings.qiling_rootfs}; static-only analysis",
             severity="info",
         )
@@ -167,8 +209,12 @@ def run_emulation(
         if rec:
             dumps.append(rec)
         recorder.record(
-            "memory", "MemoryDumpTriggered", args={"api": api_name},
-            detail=f"Dump captured after {api_name}", severity="high", suspicious=True,
+            "memory",
+            "MemoryDumpTriggered",
+            args={"api": api_name},
+            detail=f"Dump captured after {api_name}",
+            severity="high",
+            suspicious=True,
         )
 
     handler = _QilingLogCapture(recorder, _trigger_dump)
@@ -191,7 +237,8 @@ def run_emulation(
             anti_detect.apply_qiling_hooks(ql, recorder)
 
         recorder.record(
-            "api", "emulation.start",
+            "api",
+            "emulation.start",
             args={"rootfs": str(rootfs), "format": static_info.get("file_format")},
             detail="Qiling user-mode emulation started",
         )
@@ -201,8 +248,10 @@ def run_emulation(
             ql.run(timeout=timeout_us)
         except Exception as run_exc:
             recorder.record(
-                "api", "emulation.halted",
-                detail=f"Execution halted: {run_exc}", severity="low",
+                "api",
+                "emulation.halted",
+                detail=f"Execution halted: {run_exc}",
+                severity="low",
             )
 
         recorder.record("api", "emulation.end", detail="Emulation finished")
@@ -211,6 +260,9 @@ def run_emulation(
     except Exception as exc:
         logger.exception("Emulation failed")
         recorder.record(
-            "api", "emulation.error", detail=f"{exc}", severity="medium",
+            "api",
+            "emulation.error",
+            detail=f"{exc}",
+            severity="medium",
         )
         return False, dumps

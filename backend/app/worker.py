@@ -1,4 +1,5 @@
 """Celery application for asynchronous, concurrent sample analysis."""
+
 from __future__ import annotations
 
 from celery import Celery
@@ -7,6 +8,7 @@ from celery.signals import worker_process_init
 from .config import settings
 from .database import init_db
 from .logging_config import configure_logging
+from .security import enforce_startup_security
 
 configure_logging(settings.log_level)
 
@@ -31,7 +33,8 @@ celery_app.conf.update(
 
 @worker_process_init.connect
 def _init_worker(**_kwargs) -> None:
-    # Each worker process gets its own DB engine + schema check.
+    # Each worker process validates security config and gets its own DB engine.
+    enforce_startup_security()
     init_db()
 
 

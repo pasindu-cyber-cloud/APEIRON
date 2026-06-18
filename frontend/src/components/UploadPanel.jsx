@@ -24,28 +24,36 @@ export default function UploadPanel({ onUploaded }) {
 
   return (
     <Paper withBorder p="xs" radius="md">
-      <Dropzone
-        onDrop={handleDrop}
-        loading={loading}
-        maxSize={64 * 1024 ** 2}
-        multiple={false}
-      >
+      <Dropzone onDrop={handleDrop} loading={loading} maxSize={64 * 1024 ** 2} multiple={false}>
         <Group justify="center" gap="md" mih={90} style={{ pointerEvents: 'none' }}>
           <Dropzone.Accept>
-            <IconUpload style={{ width: rem(40), height: rem(40) }}
-              color="var(--mantine-color-apeiron-5)" stroke={1.4} />
+            <IconUpload
+              style={{ width: rem(40), height: rem(40) }}
+              color="var(--mantine-color-apeiron-5)"
+              stroke={1.4}
+            />
           </Dropzone.Accept>
           <Dropzone.Reject>
-            <IconX style={{ width: rem(40), height: rem(40) }}
-              color="var(--mantine-color-red-6)" stroke={1.4} />
+            <IconX
+              style={{ width: rem(40), height: rem(40) }}
+              color="var(--mantine-color-red-6)"
+              stroke={1.4}
+            />
           </Dropzone.Reject>
           <Dropzone.Idle>
-            <IconFileUnknown style={{ width: rem(40), height: rem(40) }}
-              color="var(--mantine-color-dimmed)" stroke={1.4} />
+            <IconFileUnknown
+              style={{ width: rem(40), height: rem(40) }}
+              color="var(--mantine-color-dimmed)"
+              stroke={1.4}
+            />
           </Dropzone.Idle>
           <div>
-            <Text size="sm" fw={600}>Drop a PE / ELF sample</Text>
-            <Text size="xs" c="dimmed">.exe .dll .bin ELF · up to 64 MB</Text>
+            <Text size="sm" fw={600}>
+              Drop a PE / ELF sample
+            </Text>
+            <Text size="xs" c="dimmed">
+              .exe .dll .bin ELF · up to 64 MB
+            </Text>
           </div>
         </Group>
       </Dropzone>
