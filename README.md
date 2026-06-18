@@ -112,8 +112,18 @@ API docs (Swagger) at **http://localhost:8080/api/docs**.
 ### Enable full dynamic emulation (optional)
 
 Static analysis + tracing scaffolding works out of the box. For full user-mode
-execution, mount a [Qiling rootfs](https://github.com/qilingframework/rootfs)
-and point `APEIRON_QILING_ROOTFS` at it:
+execution you need two things: (1) the optional emulation Python extras, and
+(2) a [Qiling rootfs](https://github.com/qilingframework/rootfs).
+
+The provided Docker image already installs the emulation extras
+(`requirements-emulation.txt`) on a best-effort basis. For a local checkout:
+
+```bash
+cd backend
+pip install -r requirements-emulation.txt   # qiling, unicorn, ssdeep
+```
+
+Then mount a rootfs and point `APEIRON_QILING_ROOTFS` at it:
 
 ```bash
 git clone https://github.com/qilingframework/rootfs.git ./rootfs

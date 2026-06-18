@@ -19,8 +19,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements.txt requirements-emulation.txt ./
 RUN pip install --upgrade pip && pip install -r requirements.txt
+# Emulation extras are optional: the engine falls back to static analysis if
+# they are unavailable. Install best-effort so the image always builds.
+RUN pip install -r requirements-emulation.txt \
+    || echo "WARNING: emulation extras not installed; running in static-only mode"
 
 COPY . .
 
